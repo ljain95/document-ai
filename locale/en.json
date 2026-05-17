@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "AI Reader",
+    "tagline": "Read books and novels with AI — highlight passages, summarize on demand, and visualize ideas as you go."
+  },
+  "footer": {
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "security": "Security"
+  }
+}
