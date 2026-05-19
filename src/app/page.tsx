@@ -1,7 +1,7 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+
 export default async function Home() {
-  return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      
-    </div>
-  );
+  const session = await getSession();
+  redirect(session ? "/app" : "/login");
 }

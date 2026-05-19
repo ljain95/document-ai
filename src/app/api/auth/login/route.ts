@@ -3,22 +3,29 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/schema";
 import { verifyPassword, signToken } from "@/lib/auth";
+import type { LoginRequest } from "@/@types/request/auth";
+import type {
+  AuthErrorResponse,
+  AuthSuccessResponse,
+} from "@/@types/response/auth";
+
+function err(error: AuthErrorResponse["error"], status: number) {
+  return NextResponse.json<AuthErrorResponse>({ error }, { status });
+}
 
 export async function POST(request: Request) {
-  let body: unknown;
+  let raw: unknown;
   try {
-    body = await request.json();
+    raw = await request.json();
   } catch {
-    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+    return err("invalid_json", 400);
   }
 
-  const { email, password } = (body ?? {}) as {
-    email?: unknown;
-    password?: unknown;
-  };
+  const body = (raw ?? {}) as Partial<LoginRequest>;
+  const { email, password } = body;
 
   if (typeof email !== "string" || typeof password !== "string") {
-    return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+    return err("invalid_credentials", 401);
   }
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -35,12 +42,12 @@ export async function POST(request: Request) {
     .limit(1);
 
   if (!row || !(await verifyPassword(password, row.passwordHash))) {
-    return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });
+    return err("invalid_credentials", 401);
   }
 
   const token = await signToken({ sub: row.id, email: row.email });
 
-  return NextResponse.json(
+  return NextResponse.json<AuthSuccessResponse>(
     {
       token,
       user: { id: row.id, name: row.name, email: row.email },

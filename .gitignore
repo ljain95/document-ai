@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local-only upload storage (dev). Replace with object storage for prod.
+/uploads/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

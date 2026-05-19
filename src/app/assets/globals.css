@@ -62,13 +62,62 @@
     font-family: "Helvetica Neue",ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
        Arial, sans-serif;
   }
+  /* Tailwind v4 dropped the v3 default border-color from preflight. Without
+     this, `.border` / `.border-r` etc. fall back to currentColor. Restore the
+     v3 behaviour by defaulting every element's border-color to --color-border. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
 }
 
 
-h1,h2,h3,h4,h5,h6,div,p,span,tr,td,html,body{
+/* Single base text color, on body only — so descendant elements inherit it
+   when nothing else is set, but Tailwind text-* utilities on an ancestor
+   (e.g. `text-white` on a BookCover) still propagate to nested h1/p/span. */
+body {
   color: #434343;
 }
 
 .h-screen-new{
   height: calc(100vh - 64px);
+}
+
+/* BookCover internals — two stacked multi-stop gradients that don't compress
+   into a sane Tailwind arbitrary value, so they live here. Consumed by
+   src/components/ui/bookCover.tsx. */
+@layer components {
+  .book-cover-highlight {
+    background:
+      linear-gradient(
+        90deg,
+        hsla(0, 0%, 100%, 0),
+        hsla(0, 0%, 100%, 0) 12%,
+        hsla(0, 0%, 100%, 0.25) 29.25%,
+        hsla(0, 0%, 100%, 0) 50.5%,
+        hsla(0, 0%, 100%, 0) 75.25%,
+        hsla(0, 0%, 100%, 0.25) 91%,
+        hsla(0, 0%, 100%, 0)
+      ),
+      linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.03),
+        rgba(0, 0, 0, 0.1) 12%,
+        transparent 30%,
+        rgba(0, 0, 0, 0.02) 50%,
+        rgba(0, 0, 0, 0.2) 73.5%,
+        rgba(0, 0, 0, 0.5) 75.25%,
+        rgba(0, 0, 0, 0.15) 85.25%,
+        transparent
+      );
+  }
+
+  .book-spine-bg {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(249, 249, 249, 1) 50%
+    );
+  }
 }

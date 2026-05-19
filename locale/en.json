@@ -1,11 +1,129 @@
 {
   "app": {
     "name": "AI Reader",
-    "tagline": "Read books and novels with AI — highlight passages, summarize on demand, and visualize ideas as you go."
+    "tagline": "Read books and novels with AI — highlight passages, summarize on demand, and visualize ideas as you go.",
+    "sidebar": {
+      "library": "Library",
+      "highlights": "Highlights",
+      "activity": "Activity",
+      "settings": "Settings",
+      "account": "Account",
+      "logout": "Logout"
+    },
+    "stubs": {
+      "comingSoon": "Coming soon",
+      "comingSoonDescription": "This part of AI Reader is still being built.",
+      "highlights": {
+        "title": "Highlights",
+        "emptyTitle": "No highlights yet",
+        "emptyDescription": "Highlight passages while reading and they'll show up here."
+      },
+      "activity": {
+        "title": "Activity",
+        "emptyTitle": "No activity yet",
+        "emptyDescription": "Summaries, diagrams, and illustrations you generate with AI will appear here."
+      },
+      "settings": {
+        "title": "Settings",
+        "emptyTitle": "Nothing to configure yet",
+        "emptyDescription": "Preferences and integrations will live here once we add them."
+      },
+      "account": {
+        "title": "Account",
+        "emptyDescription": "Signed in as {email}."
+      }
+    },
+    "library": {
+      "title": "Library",
+      "description": "Your uploaded documents. PDF, DOCX, and Markdown supported.",
+      "emptyTitle": "No documents yet",
+      "emptyDescription": "Upload your first PDF, DOCX, or Markdown to get started.",
+      "uploadButton": "Upload",
+      "dialogTitle": "Upload a document",
+      "dialogDescription": "PDF, DOCX, or Markdown — up to 20 MB.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Pride and Prejudice",
+      "typeLabel": "Type",
+      "typePlaceholder": "Choose a type",
+      "types": {
+        "NOVEL": "Novel",
+        "RESEARCH_PAPER": "Research paper",
+        "PRESENTATION": "Presentation",
+        "TEXTBOOK": "Textbook",
+        "ARTICLE": "Article",
+        "REPORT": "Report",
+        "OTHER": "Other"
+      },
+      "fileLabel": "File",
+      "cancel": "Cancel",
+      "submit": "Upload",
+      "submitting": "Uploading…",
+      "successToast": "Uploaded \"{name}\".",
+      "loadMore": "Load more",
+      "loadingMore": "Loading…",
+      "loadError": "Couldn't load your documents.",
+      "back": "Back to library",
+      "unsupportedFormat": "This file format isn't readable yet.",
+      "reader": {
+        "previousPage": "Previous page",
+        "nextPage": "Next page",
+        "pageInput": "Page",
+        "zoomIn": "Zoom in",
+        "zoomOut": "Zoom out",
+        "resetZoom": "Reset zoom"
+      },
+      "errors": {
+        "invalid_name": "Please give the document a name.",
+        "invalid_type": "Please choose a document type.",
+        "missing_file": "Please choose a file.",
+        "unsupported_type": "Only PDF, DOCX, and Markdown files are supported.",
+        "file_too_large": "File is larger than 20 MB.",
+        "unauthorized": "Your session expired. Please sign in again.",
+        "network_error": "Couldn't reach the server. Check your connection.",
+        "invalid_json": "Something went wrong. Please try again."
+      }
+    }
   },
   "footer": {
     "terms": "Terms",
     "privacy": "Privacy",
     "security": "Security"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your workspace",
+      "subtitle": "Welcome back. Pick up where you left off.",
+      "emailLabel": "Work email",
+      "emailPlaceholder": "you@company.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submit": "Continue",
+      "submitting": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create one"
+    },
+    "signup": {
+      "title": "Create your workspace",
+      "subtitle": "Read books and novels with AI as your sidekick.",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Jane Doe",
+      "emailLabel": "Work email",
+      "emailPlaceholder": "you@company.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "errors": {
+      "invalid_json": "Something went wrong. Please try again.",
+      "invalid_name": "Please enter your full name.",
+      "invalid_email": "Please enter a valid email address.",
+      "weak_password": "Password must be at least 8 characters.",
+      "invalid_credentials": "The email or password is incorrect.",
+      "email_taken": "An account with this email already exists.",
+      "network_error": "Couldn't reach the server. Check your connection and try again."
+    }
   }
 }

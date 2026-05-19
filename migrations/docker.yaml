@@ -1,0 +1,16 @@
+services:
+  flyway:
+    image: flyway/flyway:11-alpine
+    container_name: reader_flyway
+    command: -connectRetries=10 migrate
+    env_file:
+      - ../.env
+    environment:
+      FLYWAY_DEFAULT_SCHEMA: public
+      # Pin our V<NNN>__name.sql naming so a future Flyway default change
+      # can't quietly break the convention.
+      FLYWAY_SQL_MIGRATION_PREFIX: V
+      FLYWAY_SQL_MIGRATION_SEPARATOR: __
+      FLYWAY_SQL_MIGRATION_SUFFIXES: .sql
+    volumes:
+      - ../migrations:/flyway/sql:ro
