@@ -46,6 +46,19 @@ export const uploads = pgTable("uploads", {
   type: docTypeEnum("type").notNull().default("OTHER"),
 });
 
+export const documentState = pgTable("document_state", {
+  id: uuid("id").primaryKey().default(sql`uuidv7()`),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().default(nowMs),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull().default(nowMs),
+  deleted: boolean("deleted").notNull().default(false),
+  attrs: jsonb("attrs").$type<Record<string, unknown>>().notNull().default({}),
+
+  documentId: uuid("document_id").notNull().references(() => uploads.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  keyName: text("key_name").notNull(),
+  state: jsonb("state").$type<unknown>().notNull().default({}),
+});
+
 export const userUploads = pgTable("user_uploads", {
   id: uuid("id").primaryKey().default(sql`uuidv7()`),
   createdAt: bigint("created_at", { mode: "number" }).notNull().default(nowMs),

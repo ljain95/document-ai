@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import {
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   ChevronUpIcon,
   MinusIcon,
   PlusIcon,
@@ -29,10 +31,10 @@ interface ReaderToolbarProps {
   onResetZoom: () => void;
 }
 
-// Mirrors the MiniSidebar's chrome (w-16 column, border-r, px-3 py-6) so the
-// two sit flush as a single navigation rail. Page nav lives at the top, zoom
-// drops to the bottom mt-auto group — same shape as Library / Settings in
-// MiniSidebar.
+// Responsive: top bar on mobile (< md), left sidebar on md+. The flex
+// direction and dividers flip with the `md:` breakpoint; the prev/next
+// chevrons swap horizontal-vs-vertical via per-icon visibility classes so
+// no JS / useMediaQuery hook is needed.
 export function ReaderToolbar({
   page,
   numPages,
@@ -61,17 +63,24 @@ export function ReaderToolbar({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <aside className="flex h-full w-16 flex-col items-center border-r bg-background px-3 py-6">
-        {/* Page nav — vertically centered in the column (my-auto absorbs the
-            space above and below) so the chevrons sit at eye level. Zoom
-            falls to the bottom mt-0 group. */}
-        <div className="my-auto flex flex-col items-center gap-3">
+      <aside
+        className={
+          "flex w-full flex-row items-center justify-center gap-6 border-b bg-background px-4 py-2 " +
+          "md:h-full md:w-16 md:flex-col md:justify-start md:gap-3 md:border-b-0 md:border-r md:px-3 md:py-6"
+        }
+      >
+        {/* Page nav group — sits in a single centered cluster with zoom on
+            mobile (justify-center on parent), vertically centered as its own
+            group on desktop (my-auto). */}
+        <div className="flex flex-row items-center gap-2 md:my-auto md:flex-col md:gap-3">
           <ToolbarIconButton
-            icon={ChevronUpIcon}
             label={dict.previousPage}
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={!loaded || page <= 1}
-          />
+          >
+            <ChevronLeftIcon className="size-5 md:hidden" />
+            <ChevronUpIcon className="hidden size-5 md:block" />
+          </ToolbarIconButton>
 
           <input
             aria-label={dict.pageInput}
@@ -89,22 +98,27 @@ export function ReaderToolbar({
             className="w-9 rounded-md border bg-white px-1 py-1 text-center text-xs tabular-nums outline-none focus:border-neutral-900 disabled:opacity-40"
           />
 
-          <div className="h-px w-6 bg-neutral-200" />
+          <div className="h-6 w-px bg-neutral-200 md:h-px md:w-6" />
 
-          <span className="text-[10px] tabular-nums text-neutral-500">
+          <span className="text-[11px] tabular-nums text-neutral-500 md:text-[10px]">
             {loaded ? numPages : "—"}
           </span>
 
           <ToolbarIconButton
-            icon={ChevronDownIcon}
             label={dict.nextPage}
             onClick={() => onPageChange(Math.min(numPages, page + 1))}
             disabled={!loaded || page >= numPages}
-          />
+          >
+            <ChevronRightIcon className="size-5 md:hidden" />
+            <ChevronDownIcon className="hidden size-5 md:block" />
+          </ToolbarIconButton>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-px w-6 bg-neutral-200" />
+        {/* Zoom group — part of the centered cluster on mobile, falls to the
+            bottom of the column on desktop (kept in normal flow after the
+            my-auto page nav). */}
+        <div className="flex flex-row items-center gap-2 md:flex-col md:gap-3">
+          <div className="hidden h-px w-6 bg-neutral-200 md:block" />
           <ToolbarIconButton
             icon={MinusIcon}
             label={dict.zoomOut}
@@ -129,7 +143,10 @@ export function ReaderToolbar({
 }
 
 interface ToolbarIconButtonProps {
-  icon: LucideIcon;
+  // Either a single icon component (zoom buttons) or custom children for
+  // buttons that need to render different icons per breakpoint (prev/next).
+  icon?: LucideIcon;
+  children?: React.ReactNode;
   label: string;
   onClick: () => void;
   disabled?: boolean;
@@ -137,6 +154,7 @@ interface ToolbarIconButtonProps {
 
 function ToolbarIconButton({
   icon: Icon,
+  children,
   label,
   onClick,
   disabled,
@@ -151,7 +169,7 @@ function ToolbarIconButton({
           aria-label={label}
           className="inline-flex size-8 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
         >
-          <Icon className="size-5" />
+          {Icon ? <Icon className="size-5" /> : children}
         </button>
       </TooltipTrigger>
       <TooltipContent side="right">{label}</TooltipContent>

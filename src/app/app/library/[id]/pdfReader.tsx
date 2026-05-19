@@ -5,6 +5,15 @@ import dynamic from "next/dynamic";
 import { FileTextIcon } from "lucide-react";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { loadReactPdf } from "@/lib/pdf";
+import {
+  getDocumentState,
+  isGetDocumentStateSuccess,
+  setDocumentState,
+} from "@/network/documentState";
+import {
+  CURRENT_PAGE_STATE_KEY,
+  type CurrentPageState,
+} from "@/constants/documentState";
 import { ReaderToolbar } from "./readerToolbar";
 
 // react-pdf is browser-only (PDF.js worker accesses window). Dynamic-import
@@ -30,10 +39,22 @@ interface PdfReaderProps {
   id: string;
 }
 
-const BASE_WIDTH = 820;
+const DESKTOP_WIDTH = 600;
+const MOBILE_BREAKPOINT = 768; // matches Tailwind's `md`
+const MOBILE_WIDTH_RATIO = 0.9;
 const SCALE_STEP = 0.25;
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 3;
+// Debounce window for persisting the current page — long enough that a
+// continuous scroll-through doesn't hammer the API, short enough that a quick
+// glance still gets saved.
+const PAGE_SAVE_DEBOUNCE_MS = 1500;
+
+function readSavedPage(state: unknown): number | null {
+  if (!state || typeof state !== "object") return null;
+  const page = (state as Partial<CurrentPageState>).page;
+  return typeof page === "number" && page > 1 ? Math.floor(page) : null;
+}
 
 // Renders a sidebar-style toolbar + a scrollable column of stacked pages.
 // The two are flex siblings — the toolbar is sticky/fixed-width and the page
@@ -43,9 +64,49 @@ export function PdfReader({ id }: PdfReaderProps) {
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1);
+  const [containerWidth, setContainerWidth] = useState(DESKTOP_WIDTH);
+  // Page to resume to after the PDF + saved-state fetch both finish.
+  // `null` once consumed (or when there's nothing to resume).
+  const [pendingRestore, setPendingRestore] = useState<number | null>(null);
+  // Gates the auto-save effect — flipped on once the saved state has been
+  // read AND any resume scroll has been applied, so we don't clobber the
+  // saved value with `{ page: 1 }` during initial mount.
+  const [canSave, setCanSave] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const pageRefs = useRef<Array<HTMLDivElement | null>>([]);
+  // Mirrors latest values for the unmount flush — the cleanup runs after
+  // React has already torn the render down, so closure-captured state would
+  // be stale.
+  const latestPageRef = useRef(currentPage);
+  const canSaveRef = useRef(canSave);
   const src = ENDPOINTS.UPLOADS.FILE(id);
+
+  useEffect(() => {
+    latestPageRef.current = currentPage;
+  }, [currentPage]);
+  useEffect(() => {
+    canSaveRef.current = canSave;
+  }, [canSave]);
+
+  // Track the scroll container's width so we can switch the page-render
+  // width between a fixed DESKTOP_WIDTH and 90% of the available space on
+  // narrow screens.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setContainerWidth(el.clientWidth);
+    const observer = new ResizeObserver((entries) => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const baseWidth =
+    containerWidth < MOBILE_BREAKPOINT
+      ? containerWidth * MOBILE_WIDTH_RATIO
+      : DESKTOP_WIDTH;
+  const pageWidth = baseWidth * scale;
 
   useEffect(() => {
     if (numPages === 0) return;
@@ -78,6 +139,71 @@ export function PdfReader({ id }: PdfReaderProps) {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  // Fetch the saved "where I left off" page once per document. The result
+  // flows through pendingRestore — the actual scroll waits until the PDF
+  // reports its page count so pageRefs is populated.
+  useEffect(() => {
+    let active = true;
+    getDocumentState(id, CURRENT_PAGE_STATE_KEY)
+      .then((res) => {
+        if (!active) return;
+        if (isGetDocumentStateSuccess(res)) {
+          const saved = readSavedPage(res.state);
+          if (saved !== null) {
+            setPendingRestore(saved);
+            return;
+          }
+        }
+        // Nothing to resume — start tracking changes from page 1.
+        setCanSave(true);
+      })
+      .catch(() => {
+        // Read failed; keep saves enabled so we don't lose forward progress.
+        if (active) setCanSave(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  // Apply the resume scroll once both the saved page is known and the PDF
+  // has reported its layout. `behavior: auto` makes it feel like an instant
+  // "open at the right page" rather than a visible animated scroll.
+  useEffect(() => {
+    if (pendingRestore === null) return;
+    if (numPages === 0) return;
+    const target = Math.min(pendingRestore, numPages);
+    const el = pageRefs.current[target - 1];
+    if (!el) return;
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+    setPendingRestore(null);
+    setCanSave(true);
+  }, [pendingRestore, numPages]);
+
+  // Debounced save. Re-runs on every currentPage change; the cleanup clears
+  // the pending timer so only the latest value is persisted.
+  useEffect(() => {
+    if (!canSave) return;
+    if (numPages === 0) return;
+    const timer = setTimeout(() => {
+      const body: CurrentPageState = { page: currentPage };
+      setDocumentState(id, CURRENT_PAGE_STATE_KEY, body).catch(() => {
+        // Best-effort — the next page change will retry.
+      });
+    }, PAGE_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [id, currentPage, numPages, canSave]);
+
+  // Flush the latest page on unmount / id change so closing the tab right
+  // after scrolling doesn't lose the last position to a still-pending timer.
+  useEffect(() => {
+    return () => {
+      if (!canSaveRef.current) return;
+      const body: CurrentPageState = { page: latestPageRef.current };
+      setDocumentState(id, CURRENT_PAGE_STATE_KEY, body).catch(() => {});
+    };
+  }, [id]);
+
   return (
     <>
       <ReaderToolbar
@@ -99,7 +225,7 @@ export function PdfReader({ id }: PdfReaderProps) {
         ref={scrollRef}
         className="flex-1 overflow-auto bg-neutral-50"
       >
-        <div className="flex w-full flex-col items-center gap-4 py-8">
+        <div className="flex w-full flex-col items-center gap-8 py-8">
           <Document
             file={src}
             loading={<ReaderFallback />}
@@ -119,10 +245,10 @@ export function PdfReader({ id }: PdfReaderProps) {
               >
                 <Page
                   pageNumber={i + 1}
-                  width={BASE_WIDTH * scale}
+                  width={pageWidth}
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
-                  className="shadow-[3px_3px_10px_var(--book-shadow)] [--book-shadow:#bbb]"
+                  className="shadow-[3px_3px_10px_var(--book-shadow)] [--book-shadow:#bbb] mb-8"
                   loading={<ReaderFallback />}
                 />
               </div>

@@ -59,7 +59,7 @@ export default function ReaderPage() {
   const ext = dot >= 0 ? upload.filename.slice(dot).toLowerCase() : "";
 
   return (
-    <div className="flex h-svh flex-col">
+    <div className="flex h-svh flex-col fixed top-0 left-0 right-0 bottom-0 bg-neutral-50">
       {/* Reader header — back link + title/meta */}
       <header className="flex items-center justify-between gap-4 border-b bg-neutral-50 px-6 py-3">
         <Link
@@ -82,9 +82,9 @@ export default function ReaderPage() {
         </p>
       </header>
 
-      {/* Document surface — toolbar sits as a sibling column to the scroll
-          area, matching the MiniSidebar's chrome on the left. */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Document surface — toolbar stacks above the scroll area on mobile
+          and sits as a sibling column on md+. */}
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         {ext === ".pdf" ? (
           <PdfReader id={upload.id} />
         ) : (
