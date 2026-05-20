@@ -6,6 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  MessageSquareIcon,
   MinusIcon,
   PlusIcon,
   SearchIcon,
@@ -29,6 +30,9 @@ interface ReaderToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetZoom: () => void;
+  // Mobile-only: opens the CommentsSheet. Desktop has the inline gutter, so
+  // the button is hidden on md+.
+  onOpenComments?: () => void;
 }
 
 // Responsive: top bar on mobile (< md), left sidebar on md+. The flex
@@ -45,6 +49,7 @@ export function ReaderToolbar({
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  onOpenComments,
 }: ReaderToolbarProps) {
   const dict = t().app.library.reader;
   const [input, setInput] = useState(String(page));
@@ -137,6 +142,19 @@ export function ReaderToolbar({
             disabled={scale >= maxScale}
           />
         </div>
+
+        {/* Mobile-only: opens the CommentsSheet. Hidden on md+ since the
+            desktop layout already shows the gutter inline. */}
+        {onOpenComments && (
+          <div className="flex flex-row items-center gap-2 md:hidden">
+            <div className="h-6 w-px bg-neutral-200" />
+            <ToolbarIconButton
+              icon={MessageSquareIcon}
+              label={dict.openComments}
+              onClick={onOpenComments}
+            />
+          </div>
+        )}
       </aside>
     </TooltipProvider>
   );

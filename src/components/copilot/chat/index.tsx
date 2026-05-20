@@ -1,0 +1,1 @@
+export { CopilotWidget } from './widget'

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, MessageCircleIcon, Share2Icon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import PageLoader from "@/components/layouts/pageLoader";
 import { getUpload, isGetUploadSuccess } from "@/network/uploads";
 import { formatBytes, formatDate } from "@/lib/format";
@@ -77,9 +78,19 @@ export default function ReaderPage() {
             {upload.name}
           </p>
         </div>
-        <p className="hidden text-[10px] text-neutral-400 sm:block">
-          {formatBytes(upload.sizeBytes)} · {formatDate(upload.createdAt)}
-        </p>
+        <div className="flex items-center gap-4">
+          <p className="hidden text-[10px] text-neutral-400 sm:block">
+            {formatBytes(upload.sizeBytes)} · {formatDate(upload.createdAt)}
+          </p>
+          <Button variant="outline" size="sm" className="gap-2 rounded-lg">
+            <MessageCircleIcon className="fill-indigo-500 text-indigo-500" />
+            {dict.chat}
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2 rounded-lg">
+            <Share2Icon className="text-neutral-700" />
+            {dict.share}
+          </Button>
+        </div>
       </header>
 
       {/* Document surface — toolbar stacks above the scroll area on mobile

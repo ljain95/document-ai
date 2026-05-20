@@ -63,6 +63,8 @@
       "loadingMore": "Loading…",
       "loadError": "Couldn't load your documents.",
       "back": "Back to library",
+      "chat": "Chat",
+      "share": "Share",
       "unsupportedFormat": "This file format isn't readable yet.",
       "reader": {
         "previousPage": "Previous page",
@@ -70,7 +72,23 @@
         "pageInput": "Page",
         "zoomIn": "Zoom in",
         "zoomOut": "Zoom out",
-        "resetZoom": "Reset zoom"
+        "resetZoom": "Reset zoom",
+        "highlight": "Highlight",
+        "removeHighlight": "Remove highlight",
+        "highlightColors": {
+          "yellow": "Yellow",
+          "green": "Green",
+          "blue": "Blue",
+          "pink": "Pink"
+        },
+        "comment": "Comment",
+        "addCommentPlaceholder": "Add a note…",
+        "deleteComment": "Delete comment",
+        "openComments": "Comments",
+        "commentsTitle": "Notes",
+        "commentsEmpty": "No notes yet",
+        "commentsEmptyDescription": "Highlight a passage to add your first note.",
+        "goToPage": "Go to page {page}"
       },
       "errors": {
         "invalid_name": "Please give the document a name.",
